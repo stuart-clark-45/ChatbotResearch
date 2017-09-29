@@ -8,6 +8,7 @@ import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import org.mongodb.morphia.annotations.Indexed;
 
 /**
  * Used to store {@link Collection}s of words in a manner that makes them easily searchable.
@@ -17,6 +18,7 @@ import lombok.ToString;
 public class Phrase {
 
   @Getter
+  @Indexed
   private int size;
 
   @Getter
