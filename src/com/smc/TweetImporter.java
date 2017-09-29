@@ -1,10 +1,11 @@
 package com.smc;
 
 import com.candmcomputing.util.MongoHelper;
-import com.smc.model.StatusWrapper;
+import com.smc.model.Tweet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import twitter4j.FilterQuery;
+import twitter4j.HashtagEntity;
 import twitter4j.StallWarning;
 import twitter4j.Status;
 import twitter4j.StatusDeletionNotice;
@@ -12,16 +13,16 @@ import twitter4j.StatusListener;
 import twitter4j.TwitterException;
 import twitter4j.TwitterStream;
 import twitter4j.TwitterStreamFactory;
+import twitter4j.User;
 import twitter4j.conf.ConfigurationBuilder;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class TweetImporter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TweetImporter.class);
-
-  static {
-  }
 
   private AtomicInteger counter;
 
@@ -40,8 +41,26 @@ public class TweetImporter {
 
       @Override
       public void onStatus(Status status) {
-        // Save the status
-        MongoHelper.getDataStore().save(new StatusWrapper(status));
+        // Get the user
+        User user = status.getUser();
+
+        // Get the hashtags
+        Set<String> hashtags = new HashSet<>();
+        for (HashtagEntity hashtag : status.getHashtagEntities()) {
+          hashtags.add(hashtag.toString());
+        }
+
+        // Build the tweet
+        Tweet tweet = new Tweet();
+        tweet.setText(status.getText());
+        tweet.setCreated(status.getCreatedAt());
+        tweet.setTweetId(status.getId());
+        tweet.setUserId(user.getId());
+        tweet.setUsername(user.getName());
+        tweet.setHashtags(hashtags);
+
+        // Save the tweet
+        MongoHelper.getDataStore().save(tweet);
 
         // Logging
         int count = counter.incrementAndGet();
@@ -60,7 +79,6 @@ public class TweetImporter {
 
       @Override
       public void onScrubGeo(long userId, long upToStatusId) {
-
       }
 
       @Override
