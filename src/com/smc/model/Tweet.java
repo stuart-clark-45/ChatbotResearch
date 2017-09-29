@@ -7,6 +7,7 @@ import org.bson.types.ObjectId;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.mongodb.morphia.annotations.Indexed;
 
 /**
  * Basic model for imported tweets.
@@ -26,6 +27,7 @@ public class Tweet {
 
   @Getter
   @Setter
+  @Indexed(unique = true)
   private long tweetId;
 
   @Getter
