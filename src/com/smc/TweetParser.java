@@ -1,30 +1,29 @@
 package com.smc;
 
-import com.candmcomputing.util.MongoHelper;
-import com.smc.model.ParsedTweet;
-import com.smc.model.StatusWrapper;
-import edu.stanford.nlp.ling.CoreAnnotations;
-import edu.stanford.nlp.ling.CoreAnnotations.TokensAnnotation;
-import edu.stanford.nlp.pipeline.Annotation;
-import edu.stanford.nlp.pipeline.StanfordCoreNLP;
-import edu.stanford.nlp.semgraph.SemanticGraph;
-import edu.stanford.nlp.semgraph.SemanticGraphCoreAnnotations;
-import edu.stanford.nlp.util.CoreMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.mongodb.morphia.Datastore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import twitter4j.HashtagEntity;
-import twitter4j.Status;
 
-import java.util.List;
-import java.util.Properties;
+import com.candmcomputing.util.ConfigHelper;
+import com.candmcomputing.util.MongoHelper;
+import com.smc.model.ParsedTweet;
+import com.smc.model.Token;
+import com.smc.model.Tweet;
+import com.smc.util.Parser;
 
 public class TweetParser {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TweetParser.class);
+  private static final Set<String> BAD_HASHTAGS =
+      new HashSet<>(ConfigHelper.getList(String.class, "hashtags.exclude"));
 
   private final Datastore ds;
-  private final StanfordCoreNLP pipeline;
 
   public TweetParser() {
     this.ds = MongoHelper.getDataStore();
@@ -32,7 +31,6 @@ public class TweetParser {
     LOGGER.info("Initialising StanfordCoreNLP...");
     Properties props = new Properties();
     props.put("annotators", "tokenize, ssplit, pos, lemma, ner, parse");
-    this.pipeline = new StanfordCoreNLP(props);
   }
 
   private void run() {
@@ -40,33 +38,35 @@ public class TweetParser {
     ds.getCollection(ParsedTweet.class).drop();
 
     // Iterate over all of the imported tweets
-    LOGGER.info("Parsing " + ds.getCount(StatusWrapper.class) + " StatusWrappers...");
-    for (StatusWrapper wrapper : ds.createQuery(StatusWrapper.class)) {
+    LOGGER.info("Parsing " + ds.getCount(Tweet.class) + " tweets...");
+    for (Tweet tweet : ds.createQuery(Tweet.class)) {
 
-      // Create new parsed tweet
+      // The parsed tweet
       ParsedTweet parsed = new ParsedTweet();
 
-      for (HashtagEntity hashtagEntity : wrapper.getStatus().getHashtagEntities()) {
-        LOGGER.info(hashtagEntity.getText());
-      }
+      // Set unparsed
+      String text = tweet.getText();
+      parsed.setUnparsed(text);
 
+      // Filter out the bad hashtags
+      parsed.setHashtags(tweet.getHashtags().stream().filter(ht -> !BAD_HASHTAGS.contains(ht))
+          .collect(Collectors.toSet()));
 
-//      // Set unparsed
-//      Status status = wrapper.getStatus();
-//      String text = status.getText();
-//      parsed.setUnparsed(text);
-//
-//      Annotation document = new Annotation(text);
-//      pipeline.annotate(document);
-//      document.get(TokensAnnotation.class);
-//
-//      List<CoreMap> sentences = document.get(CoreAnnotations.SentencesAnnotation.class);
-//      for (CoreMap sentence : sentences) {
-//        SemanticGraph graph = sentence.get(SemanticGraphCoreAnnotations.EnhancedDependenciesAnnotation.class);
-//        LOGGER.info("");
-//      }
+      // Parse the text to obtain tokens with POS and NER tags
+      List<Token> tokens = new Parser(text).getTokens();
+      parsed.setTokens(tokens);
 
+      // Select key words
+      parsed.setKeywords(tokens.stream().filter(TweetParser::isKeyWord).map(Token::getText)
+          .collect(Collectors.toSet()));
+
+      // Save the parsed tweet
+      ds.save(parsed);
     }
+  }
+
+  private static boolean isKeyWord(Token t) {
+    return t.getPos().startsWith("NN") || t.getPos().startsWith("VB");
   }
 
   public static void main(String[] args) {
