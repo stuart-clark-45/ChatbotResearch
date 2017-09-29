@@ -1,9 +1,15 @@
 package com.smc;
 
-import com.candmcomputing.util.MongoHelper;
-import com.smc.model.Tweet;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.candmcomputing.util.MongoHelper;
+import com.smc.model.Tweet;
+
 import twitter4j.FilterQuery;
 import twitter4j.HashtagEntity;
 import twitter4j.StallWarning;
@@ -15,10 +21,6 @@ import twitter4j.TwitterStream;
 import twitter4j.TwitterStreamFactory;
 import twitter4j.User;
 import twitter4j.conf.ConfigurationBuilder;
-
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class TweetImporter {
 
@@ -70,16 +72,13 @@ public class TweetImporter {
       }
 
       @Override
-      public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
-      }
+      public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {}
 
       @Override
-      public void onTrackLimitationNotice(int numberOfLimitedStatuses) {
-      }
+      public void onTrackLimitationNotice(int numberOfLimitedStatuses) {}
 
       @Override
-      public void onScrubGeo(long userId, long upToStatusId) {
-      }
+      public void onScrubGeo(long userId, long upToStatusId) {}
 
       @Override
       public void onStallWarning(StallWarning warning) {
