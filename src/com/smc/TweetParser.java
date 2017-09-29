@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.mongodb.morphia.Datastore;
 import org.slf4j.Logger;
@@ -39,14 +40,39 @@ public class TweetParser {
 
     // Iterate over all of the imported tweets
     LOGGER.info("Parsing " + ds.getCount(Tweet.class) + " tweets...");
-    for (Tweet tweet : ds.createQuery(Tweet.class)) {
 
-      // The parsed tweet
-      ParsedTweet parsed = new ParsedTweet();
+    // Parse the tweets in parallel
+    StreamSupport.stream(ds.createQuery(Tweet.class).spliterator(), true).forEach(this::parseTweet);
+  }
 
-      // Set unparsed
-      String text = tweet.getText();
-      parsed.setUnparsed(text);
+  /**
+   * Takes {@code tweet} and parses it into a {@link ParsedTweet} which is then stored in the db.
+   *
+   * @param tweet
+   */
+  private void parseTweet(Tweet tweet) {
+    // The parsed tweet
+    ParsedTweet parsed = new ParsedTweet();
+
+    // Set unparsed
+    String text = tweet.getText();
+    parsed.setUnparsed(text);
+
+    // Filter out the bad hashtags
+    parsed.setHashtags(tweet.getHashtags().stream().filter(ht -> !BAD_HASHTAGS.contains(ht))
+        .collect(Collectors.toSet()));
+
+    // Parse the text to obtain tokens with POS and NER tags
+    List<Token> tokens = new Parser(text).getTokens();
+    parsed.setTokens(tokens);
+
+    // Select key words
+    parsed.setKeywords(tokens.stream().filter(TweetParser::isKeyWord).map(Token::getText)
+        .collect(Collectors.toSet()));
+
+    // Save the parsed tweet
+    ds.save(parsed);
+  }
 
       // Filter out the bad hashtags
       parsed.setHashtags(tweet.getHashtags().stream().filter(ht -> !BAD_HASHTAGS.contains(ht))
