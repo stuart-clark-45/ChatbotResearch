@@ -98,7 +98,7 @@ public class TweetParser {
       return false;
 
     // The word chatbot and variants are not allowed
-    if (exactMatch(lower.toLowerCase(), CHATBOT_REGEX))
+    if (exactMatch(lower, CHATBOT_REGEX))
       return false;
 
     return true;
