@@ -1,0 +1,27 @@
+<ivy-module version="2.0">
+    <info organisation="com.candmcomputing" module="student-share-server"/>
+
+     <configurations defaultconfmapping="compile->default">
+        <conf name="compile" description="Required to compile application"/>
+        <conf name="runtime" description="Additional run-time dependencies" extends="compile"/>
+        <conf name="test" description="Required for test only" extends="runtime"/>
+    </configurations>
+
+    <dependencies>
+        <!-- compile dependencies -->
+        <dependency org="com.candmcomputing" name="smccore" rev="1.0.2" conf="compile->test"/>
+        <dependency org="org.twitter4j" name="twitter4j-core" rev="4.0.6"/>
+        <dependency org="org.twitter4j" name="twitter4j-stream" rev="4.0.6"/>
+
+        <!-- runtime dependencies -->
+
+        <!-- test dependencies -->
+        <dependency org="junit" name="junit" rev="4.12" conf="test->default"/>
+
+        <!-- Having the following dependancy in your class path avoids having to restart the server each time changes are made. Depending on your IDE additional steps may be required.-->
+        <!-- MUST BE COMMENTED OUT WHEN BUILDING FOR PRODUCTION -->
+        <dependency org="org.springframework.boot" name="spring-boot-devtools" rev="1.5.4.RELEASE"/>
+
+    </dependencies>
+
+</ivy-module>
