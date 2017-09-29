@@ -58,7 +58,7 @@ public class TweetImporter {
       // Get the hashtags
       Set<String> hashtags = new HashSet<>();
       for (HashtagEntity hashtag : status.getHashtagEntities()) {
-        hashtags.add(hashtag.getText().toUpperCase());
+        hashtags.add(hashtag.getText());
       }
 
       // Build the tweet
