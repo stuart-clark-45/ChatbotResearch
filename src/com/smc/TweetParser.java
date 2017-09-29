@@ -18,11 +18,19 @@ import com.smc.model.Token;
 import com.smc.model.Tweet;
 import com.smc.util.Parser;
 
+/**
+ * Used to take {@link Tweet}s and parse them into {@link ParsedTweet}s.
+ *
+ * @author Stuart Clark
+ */
 public class TweetParser {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TweetParser.class);
+
   private static final Set<String> BAD_HASHTAGS =
       new HashSet<>(ConfigHelper.getList(String.class, "hashtags.exclude"));
+
+  private static final String CHATBOT_REGEX = "#?(chat)?bots?";
 
   private final Datastore ds;
 
@@ -74,25 +82,32 @@ public class TweetParser {
     ds.save(parsed);
   }
 
-      // Filter out the bad hashtags
-      parsed.setHashtags(tweet.getHashtags().stream().filter(ht -> !BAD_HASHTAGS.contains(ht))
-          .collect(Collectors.toSet()));
+  private static boolean isKeyWord(Token t) {
+    String lower = t.getText().toLowerCase();
+    String pos = t.getPos();
 
-      // Parse the text to obtain tokens with POS and NER tags
-      List<Token> tokens = new Parser(text).getTokens();
-      parsed.setTokens(tokens);
+    // Can be a noun or a verb
+    if (!pos.startsWith("NN") && !pos.startsWith("VB"))
+      return false;
 
-      // Select key words
-      parsed.setKeywords(tokens.stream().filter(TweetParser::isKeyWord).map(Token::getText)
-          .collect(Collectors.toSet()));
+    // URLs not allowed
+    if (lower.startsWith("https://") || lower.startsWith("http://"))
+      return false;
 
-      // Save the parsed tweet
-      ds.save(parsed);
-    }
+    // The word chatbot and variants are not allowed
+    if (exactMatch(lower.toLowerCase(), CHATBOT_REGEX))
+      return false;
+
+    return true;
   }
 
-  private static boolean isKeyWord(Token t) {
-    return t.getPos().startsWith("NN") || t.getPos().startsWith("VB");
+  /**
+   * @param s
+   * @param regex
+   * @return true if {s} exactly matches {@code regex}, false otherwise.
+   */
+  private static boolean exactMatch(String s, String regex) {
+    return s.replaceFirst(regex, "").isEmpty();
   }
 
   public static void main(String[] args) {
