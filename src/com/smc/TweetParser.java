@@ -42,7 +42,7 @@ public class TweetParser {
     props.put("annotators", "tokenize, ssplit, pos, lemma, ner, parse");
   }
 
-  private void run() {
+  public void run() {
     // Drop existing parsed tweets
     ds.getCollection(ParsedTweet.class).drop();
 
