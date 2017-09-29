@@ -1,12 +1,16 @@
 package com.smc.model;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.bson.types.ObjectId;
-
 import java.util.Date;
 import java.util.Set;
 
+import org.bson.types.ObjectId;
+
+import lombok.Getter;
+import lombok.Setter;
+
+/**
+ * Basic model for imported tweets.
+ */
 public class Tweet {
 
   @Getter
