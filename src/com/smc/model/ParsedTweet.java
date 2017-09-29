@@ -1,10 +1,11 @@
 package com.smc.model;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.HashSet;
-import java.util.Set;
 
 public class ParsedTweet {
 
@@ -20,9 +21,17 @@ public class ParsedTweet {
   @Setter
   private Set<String> hashtags;
 
+  @Getter
+  @Setter
+  private List<Token> tokens;
+
   public ParsedTweet() {
     this.keywords = new HashSet<>();
     this.hashtags = new HashSet<>();
+  }
+
+  public void addHashTag(String hashtag) {
+    hashtags.add(hashtag);
   }
 
 }
