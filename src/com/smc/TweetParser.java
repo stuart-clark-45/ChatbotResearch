@@ -1,5 +1,6 @@
 package com.smc;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -14,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import com.candmcomputing.util.ConfigHelper;
 import com.candmcomputing.util.MongoHelper;
 import com.smc.model.ParsedTweet;
+import com.smc.model.Phrase;
 import com.smc.model.Token;
 import com.smc.model.Tweet;
 import com.smc.util.Parser;
@@ -78,8 +80,14 @@ public class TweetParser {
     parsed.setTokens(tokens);
 
     // Select key words
-    parsed.setKeywords(tokens.stream().filter(TweetParser::isKeyWord).map(Token::getText)
-        .collect(Collectors.toSet()));
+    Set<String> keywords = tokens.stream().filter(TweetParser::isKeyWord).map(Token::getText)
+        .collect(Collectors.toSet());
+    parsed.setKeywords(keywords);
+
+    // Generate the key phrases
+    Set<Phrase> keyphrases = powerSet(keywords).stream().filter(set -> set.size() > 1)
+        .map(Phrase::new).collect(Collectors.toSet());
+    parsed.setKeyphrases(keyphrases);
 
     // Save the parsed tweet
     ds.save(parsed);
@@ -102,6 +110,34 @@ public class TweetParser {
       return false;
 
     return true;
+  }
+
+  /**
+   * @param keywords
+   * @return the power set of {@code keywords}.
+   */
+  private static Set<Set<String>> powerSet(Set<String> keywords) {
+    Set<Set<String>> sets = new HashSet<>();
+
+    // Return a set containing a single empty set if originalSet is empty
+    if (keywords.isEmpty()) {
+      sets.add(new HashSet<>());
+      return sets;
+    }
+
+    // Recursively construct the power set
+    List<String> list = new ArrayList<>(keywords);
+    String head = list.get(0);
+    Set<String> rest = new HashSet<>(list.subList(1, list.size()));
+    for (Set<String> set : powerSet(rest)) {
+      Set<String> newSet = new HashSet<>();
+      newSet.add(head);
+      newSet.addAll(set);
+      sets.add(newSet);
+      sets.add(set);
+    }
+
+    return sets;
   }
 
   /**
