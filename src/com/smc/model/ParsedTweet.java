@@ -22,7 +22,7 @@ public class ParsedTweet {
 
   @Getter
   @Setter
-  private Set<Phrase> keyphrases;
+  private Set<String> keyphrases;
 
   @Getter
   @Setter

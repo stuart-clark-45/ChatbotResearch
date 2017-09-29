@@ -85,8 +85,10 @@ public class TweetParser {
     parsed.setKeywords(keywords);
 
     // Generate the key phrases
-    Set<Phrase> keyphrases = powerSet(keywords).stream().filter(set -> set.size() > 1)
-        .map(Phrase::new).collect(Collectors.toSet());
+    // TODO there are better ways of doing this than getting the power set then filtering it
+    Set<String> keyphrases =
+        powerSet(keywords).stream().filter(set -> set.size() > 1 && set.size() < 5).map(Phrase::new).map(Phrase::getText)
+            .collect(Collectors.toSet());
     parsed.setKeyphrases(keyphrases);
 
     // Save the parsed tweet
