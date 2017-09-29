@@ -7,6 +7,9 @@ import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Module used to represent tweets in a way that enables analysis to be performed.
+ */
 public class ParsedTweet {
 
   @Getter
@@ -28,10 +31,6 @@ public class ParsedTweet {
   public ParsedTweet() {
     this.keywords = new HashSet<>();
     this.hashtags = new HashSet<>();
-  }
-
-  public void addHashTag(String hashtag) {
-    hashtags.add(hashtag);
   }
 
 }
