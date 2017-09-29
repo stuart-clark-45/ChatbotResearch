@@ -22,6 +22,10 @@ public class ParsedTweet {
 
   @Getter
   @Setter
+  private Set<Phrase> keyphrases;
+
+  @Getter
+  @Setter
   private Set<String> hashtags;
 
   @Getter
