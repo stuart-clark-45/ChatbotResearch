@@ -66,6 +66,9 @@ public class TweetParser {
     String text = tweet.getText();
     parsed.setUnparsed(text);
 
+    // Remove all hashtags
+    text = text.replaceAll("#", "");
+
     // Filter out the bad hashtags
     parsed.setHashtags(tweet.getHashtags().stream().filter(ht -> !BAD_HASHTAGS.contains(ht))
         .collect(Collectors.toSet()));
