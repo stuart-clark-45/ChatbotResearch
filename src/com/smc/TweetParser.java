@@ -98,8 +98,9 @@ public class TweetParser {
     text = text.replaceAll("#", "");
 
     // Filter out the bad hashtags
-    parsed.setHashtags(tweet.getHashtags().stream().filter(ht -> !BAD_HASHTAGS.contains(ht))
-        .map(String::toUpperCase).collect(Collectors.toSet()));
+    Set<String> hashtags = tweet.getHashtags().stream().filter(ht -> !BAD_HASHTAGS.contains(ht))
+        .map(String::toUpperCase).collect(Collectors.toSet());
+    parsed.setHashtags(hashtags);
 
     // Parse the text to obtain tokens with POS and NER tags
     List<Token> tokens = new Parser(text).getTokens();
@@ -111,9 +112,12 @@ public class TweetParser {
     parsed.setKeywords(keywords);
 
     // Generate the key phrases
+    // Combine keywords and hashtags
+    HashSet<String> kwAndHt = new HashSet<>(keywords);
+    kwAndHt.addAll(hashtags);
     // TODO there are better ways of doing this than getting the power set then filtering it
     Set<String> keyphrases =
-        powerSet(keywords).stream().filter(set -> set.size() > 1 && set.size() < 5).map(Phrase::new)
+        powerSet(kwAndHt).stream().filter(set -> set.size() > 1 && set.size() < 5).map(Phrase::new)
             .map(Phrase::getText).collect(Collectors.toSet());
     parsed.setKeyphrases(keyphrases);
 
@@ -133,11 +137,12 @@ public class TweetParser {
     if (lower.startsWith("https://") || lower.startsWith("http://"))
       return false;
 
-    // The word chatbot and variants are not allowed
-    if (exactMatch(lower, CHATBOT_REGEX))
+    // Hashtags not allowed
+    if (lower.startsWith("#"))
       return false;
 
-    return true;
+    // The word chatbot and variants are not allowed
+    return !exactMatch(lower, CHATBOT_REGEX);
   }
 
   /**
