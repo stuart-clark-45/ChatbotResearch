@@ -77,6 +77,8 @@ public class TweetParser {
 
     // Reapply indexes
     ds.ensureIndexes(ParsedTweet.class);
+
+    LOGGER.info("Finished parsing tweets.");
   }
 
   /**
