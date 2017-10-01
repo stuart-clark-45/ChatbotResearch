@@ -1,0 +1,124 @@
+<project name="smccore" default="compile" basedir="." xmlns:ivy="antlib:org.apache.ivy.ant">
+
+    <property name="dir.build" value="bin"/>
+    <property name="dir.lib" value="lib"/>
+    <property name="dir.src" value="src"/>
+    <property name="dir.test" value="test"/>
+    <property name="dir.test" value="test"/>
+    <property name="dir.conf" value="conf"/>
+    <property name="dir.rsrc" value="resources"/>
+    <property name="dir.dist" value="dist"/>
+    <property name="dir.report" value="reports"/>
+    <property name="dir.jars" value="jars"/>
+    <property name="output.name" value="research.jar"/>
+
+    <target name="clean" description="delete all build artifacts">
+        <delete dir="${dir.lib}"/>
+        <delete dir="${dir.build}"/>
+        <delete dir="${dir.dist}"/>
+        <delete dir="${dir.report}"/>
+    </target>
+
+    <target name="resolve" description="resolve dependencies">
+        <ivy:retrieve pattern="${dir.lib}/[conf]/[artifact]-[revision](-[classifier]).[ext]" sync="true"
+                      type="jar,bundle" log="quiet"/>
+        <copy todir="${dir.lib}/compile">
+            <fileset dir="${dir.jars}" includes="**/*.jar"/>
+        </copy>
+    </target>
+
+    <target name="ivyreport" depends="resolve" description="report ivy dependencies">
+        <ivy:report conf="compile"/>
+    </target>
+
+    <target name="compile" depends="resolve" description="build the application">
+        <mkdir dir="${dir.build}"/>
+        <javac srcdir="${dir.src}" destdir="${dir.build}" target="1.8" source="1.8" includeantruntime="false" debug="on"
+               encoding="UTF-8">
+            <classpath>
+                <fileset dir="${dir.lib}/compile" includes="**/*.jar"/>
+            </classpath>
+            <compilerarg line="-XDignore.symbol.file"/>
+        </javac>
+    </target>
+
+    <target name="compile-test" description="build the application including tests">
+        <mkdir dir="${dir.build}"/>
+        <javac srcdir="${dir.test}" destdir="${dir.build}" target="1.8" source="1.8" includeantruntime="false" debug="on"
+               encoding="UTF-8">
+            <classpath>
+                <fileset dir="${dir.lib}/test" includes="**/*.jar"/>
+            </classpath>
+            <compilerarg line="-XDignore.symbol.file"/>
+        </javac>
+    </target>
+
+    <target name="dist" depends="compile" description="build a distribution-ready package">
+        <echo message="Building for commit: "/>
+        <touch file="${dir.dist}/version.txt" mkdirs="true"/>
+        <exec executable="git" failonerror="true">
+            <arg value="rev-parse"/>
+            <arg value="HEAD"/>
+            <redirector output="${dir.dist}/version.txt" alwayslog="true"/>
+        </exec>
+
+        <mkdir dir="${dir.dist}/lib"/>
+        <copy todir="${dir.dist}/lib">
+            <fileset dir="${dir.lib}/compile" includes="**/*.jar"/>
+        </copy>
+
+        <mkdir dir="${dir.dist}/conf"/>
+        <copy todir="${dir.dist}/conf">
+            <fileset dir="${dir.conf}"/>
+        </copy>
+
+        <mkdir dir="${dir.dist}/resources"/>
+        <copy todir="${dir.dist}/resources">
+            <fileset dir="${dir.rsrc}"/>
+        </copy>
+
+        <!-- Build up a classpath for the jar -->
+        <manifestclasspath property="dist.jar.classpath" jarfile="${dir.dist}/${output.name}">
+            <classpath>
+                <fileset dir="${dir.dist}/lib" includes="**/*.jar"/>
+                <fileset dir="${dir.dist}/resources" includes="**/*"/>
+            </classpath>
+        </manifestclasspath>
+
+        <!-- Check the Git version information -->
+        <exec executable="git" outputproperty="dist.jar.version">
+            <arg value="describe"/>
+            <arg value="--always"/>
+            <arg value="--dirty=-impure"/>
+        </exec>
+
+        <jar destfile="${dir.dist}/${output.name}">
+            <manifest>
+                <attribute name="Class-Path" value="${dist.jar.classpath}"/>
+                <section name="Build">
+                    <attribute name="User" value="${user.name}"/>
+                    <attribute name="JVM" value="${java.vm.vendor} ${java.vm.name} ${java.vm.version}"/>
+                    <attribute name="JRE" value="${java.vendor} ${java.version}"/>
+                    <attribute name="OS" value="${os.name} ${os.version} ${os.arch}"/>
+                    <attribute name="Version" value="${dist.jar.version}"/>
+                </section>
+            </manifest>
+            <fileset dir="${dir.build}" includes="**/*.class"/>
+            <fileset dir="${dir.rsrc}"/>
+        </jar>
+    </target>
+
+    <target name="ivy-report" description="Report what Ivy is doing">
+        <mkdir dir="ivy-report"/>
+        <ivy:resolve type="${ivy.resolve.types}"/>
+        <ivy:report todir="ivy-report"/>
+    </target>
+
+    <target name="publish" depends="resolve,compile,compile-test,dist" description="Publish this build into repository">
+         <input message="Specify release version number e.g. 5.12" addproperty="version"/>
+        <ivy:publish pubrevision="${version}" resolver="local" >
+            <artifacts pattern="${dir.dist}/[artifact].[ext]"/>
+        </ivy:publish>
+    </target>
+
+</project>
