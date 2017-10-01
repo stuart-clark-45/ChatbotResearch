@@ -33,7 +33,7 @@ public class Analysis {
 
   private static final String COUNT = "count";
 
-  private static final boolean IGNORE_RT = ConfigHelper.getBoolean("ingoreRetweets");
+  private static final boolean IGNORE_RT = ConfigHelper.getBoolean("ignoreRetweets");
 
   private final Accumulator counter;
   private final AggregationOptions options;
