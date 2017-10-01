@@ -1,11 +1,12 @@
 package com.smc.model;
 
+import lombok.EqualsAndHashCode;
 import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.Indexed;
 
 import com.smc.Analysis;
 
 import lombok.Getter;
-import org.mongodb.morphia.annotations.Indexed;
 
 /**
  * Model used to represent the result of aggregations that count the number of occurrences of
@@ -13,6 +14,7 @@ import org.mongodb.morphia.annotations.Indexed;
  *
  * @author Stuart Clark
  */
+@EqualsAndHashCode(exclude = "count")
 public abstract class StringCountResult {
 
   @Id
