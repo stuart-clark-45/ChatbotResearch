@@ -11,18 +11,19 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-import com.candmcomputing.util.IterationLogger;
 import org.mongodb.morphia.Datastore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.candmcomputing.util.ConfigHelper;
+import com.candmcomputing.util.IterationLogger;
 import com.candmcomputing.util.MongoHelper;
 import com.mongodb.DBCollection;
 import com.smc.model.ParsedTweet;
 import com.smc.model.Phrase;
 import com.smc.model.Token;
 import com.smc.model.Tweet;
+import com.smc.util.BandWords;
+import com.smc.util.CbrException;
 import com.smc.util.Parser;
 
 /**
@@ -36,15 +37,11 @@ public class TweetParser {
 
   private static final String RETWEET = "RT";
 
-  private static final Set<String> BAD_HASHTAGS =
-      new HashSet<>(ConfigHelper.getList(String.class, "hashtags.exclude"));
-
-  private static final String CHATBOT_REGEX = "#?(chat)?bots?";
-
   private static final int LOG_INTERVAL = 100;
 
   private final Datastore ds;
   private final ExecutorService es;
+  private final BandWords bandwords;
 
   public TweetParser() {
     this.ds = MongoHelper.getDataStore();
@@ -55,6 +52,8 @@ public class TweetParser {
 
     int nThreads = Runtime.getRuntime().availableProcessors() * 2;
     this.es = Executors.newFixedThreadPool(nThreads);
+
+    this.bandwords = new BandWords();
   }
 
   public void run() {
@@ -111,7 +110,7 @@ public class TweetParser {
     text = text.replaceAll("#", "");
 
     // Filter out the bad hashtags
-    Set<String> hashtags = tweet.getHashtags().stream().filter(ht -> !BAD_HASHTAGS.contains(ht))
+    Set<String> hashtags = tweet.getHashtags().stream().filter(ht -> !isBanned(ht))
         .map(String::toUpperCase).collect(Collectors.toSet());
     parsed.setHashtags(hashtags);
 
@@ -123,7 +122,7 @@ public class TweetParser {
     parsed.setRetweet(tokens.get(0).getText().equals(RETWEET));
 
     // Select key words
-    Set<String> keywords = tokens.stream().filter(TweetParser::isKeyWord).map(Token::getText)
+    Set<String> keywords = tokens.stream().filter(this::isKeyWord).map(Token::getText)
         .map(String::toUpperCase).collect(Collectors.toSet());
     parsed.setKeywords(keywords);
 
@@ -141,7 +140,22 @@ public class TweetParser {
     ds.save(parsed);
   }
 
-  private static boolean isKeyWord(Token t) {
+  /**
+   * Wraps around {@link BandWords#isBanned(String)} and handles exception.
+   *
+   * @param word
+   * @return
+   */
+  private boolean isBanned(String word) {
+    try {
+      return bandwords.isBanned(word);
+    } catch (CbrException e) {
+      LOGGER.error("Failed check if \"" + word + "\" was banned it will be accepted", e);
+      return false;
+    }
+  }
+
+  private boolean isKeyWord(Token t) {
     String lower = t.getText().toLowerCase();
     String pos = t.getPos();
 
@@ -157,8 +171,8 @@ public class TweetParser {
     if (lower.startsWith("#"))
       return false;
 
-    // The word chatbot and variants are not allowed
-    return !exactMatch(lower, CHATBOT_REGEX);
+    // The word cannot be a band word
+    return !isBanned(lower);
   }
 
   /**
@@ -187,15 +201,6 @@ public class TweetParser {
     }
 
     return sets;
-  }
-
-  /**
-   * @param s
-   * @param regex
-   * @return true if {s} exactly matches {@code regex}, false otherwise.
-   */
-  private static boolean exactMatch(String s, String regex) {
-    return s.replaceFirst(regex, "").isEmpty();
   }
 
   public static void main(String[] args) {
