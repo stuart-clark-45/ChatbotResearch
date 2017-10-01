@@ -19,6 +19,11 @@ import com.smc.model.KeyWord;
 import com.smc.model.ParsedTweet;
 import com.smc.model.StringCountResult;
 
+/**
+ * Used to perform analysis on {@link ParsedTweet}s.
+ *
+ * @author Stuart Clark
+ */
 public class Analysis {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(Analysis.class);
