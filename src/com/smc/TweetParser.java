@@ -92,7 +92,7 @@ public class TweetParser {
 
     // Filter out the bad hashtags
     parsed.setHashtags(tweet.getHashtags().stream().filter(ht -> !BAD_HASHTAGS.contains(ht))
-        .collect(Collectors.toSet()));
+        .map(String::toUpperCase).collect(Collectors.toSet()));
 
     // Parse the text to obtain tokens with POS and NER tags
     List<Token> tokens = new Parser(text).getTokens();
@@ -100,7 +100,7 @@ public class TweetParser {
 
     // Select key words
     Set<String> keywords = tokens.stream().filter(TweetParser::isKeyWord).map(Token::getText)
-        .collect(Collectors.toSet());
+        .map(String::toUpperCase).collect(Collectors.toSet());
     parsed.setKeywords(keywords);
 
     // Generate the key phrases
