@@ -46,7 +46,7 @@ public class Analysis {
     this.options = AggregationOptions.builder().allowDiskUse(true).build();
   }
 
-  private void run() {
+  public void run() {
     LOGGER.info("Running Analysis...");
 
     // Count the number of times that each hashtags appears and write the result to the database
