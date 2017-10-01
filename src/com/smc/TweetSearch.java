@@ -43,7 +43,7 @@ public class TweetSearch {
       // Get the value the user wants to search for
       System.out.println("\nEnter the " + fieldSingular
           + " that you would like to search for or use ctlr+c to quit:");
-      String value = sc.nextLine();
+      String value = sc.nextLine().toUpperCase();
 
       // Search for tweets and print them out
       System.out.println("\nTweets: ");
