@@ -1,0 +1,26 @@
+#-------------------------------------------------------------------#
+#                                                                   #
+#  All words in this file not preceded by a "#" will be ignored     #
+#    when generating hashtags and keywords using TweetParser        #
+#                                                                   #
+#-------------------------------------------------------------------#
+ARE
+AI
+ARTIFICIALINTELLIGENCE
+IS
+CHATBOTS
+USE
+THEM
+CHATBOT
+BOTS
+HAVE
+BE
+ENABLE
+INDUSTRY
+MACHINELEARNING
+ML
+THINGS
+BOT
+'RE
+'S
+|
