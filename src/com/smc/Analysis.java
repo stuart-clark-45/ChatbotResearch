@@ -6,6 +6,7 @@ import static org.mongodb.morphia.query.Sort.descending;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import com.mongodb.AggregationOptions;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.aggregation.Accumulator;
 import org.slf4j.Logger;
@@ -31,12 +32,14 @@ public class Analysis {
   private static final String COUNT = "count";
 
   private final Accumulator counter;
+  private final AggregationOptions options;
 
   private Datastore ds;
 
   public Analysis() {
     this.ds = MongoHelper.getDataStore();
     this.counter = new Accumulator("$sum", 1);
+    this.options = AggregationOptions.builder().allowDiskUse(true).build();
   }
 
   private void run() {
@@ -74,7 +77,7 @@ public class Analysis {
     // collection takes place to reduce aggregation time.
     collection.dropIndexes();
     ds.createAggregation(ParsedTweet.class).unwind(field).group(field, grouping(COUNT, counter))
-        .sort(descending(COUNT)).out(clazz);
+        .sort(descending(COUNT)).out(clazz, options);
     ds.ensureIndexes(clazz);
   }
 
