@@ -35,14 +35,21 @@ public class Analysis {
   }
 
   private void run() {
+    LOGGER.info("Running Analysis...");
+
     // Count the number of times that each hashtags appears and write the result to the database
+    LOGGER.info("Analysing hashtags...");
     countDistinctElements("hashtags", HashTag.class);
 
     // Count the number of times that each keyword appears and write the results to the database
+    LOGGER.info("Analysing keywords...");
     countDistinctElements("keywords", KeyWord.class);
 
     // Count the number of times that each phrase appears and write the results to the database
+    LOGGER.info("Analysing keyphrases...");
     countDistinctElements("keyphrases", KeyPhrase.class);
+
+    LOGGER.info("Finished running Analysis...");
   }
 
   /**
