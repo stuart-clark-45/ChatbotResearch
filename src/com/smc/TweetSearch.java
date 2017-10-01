@@ -59,16 +59,18 @@ public class TweetSearch {
     }
   }
 
+  /**
+   * Get the field the user wants to search for using the terminal.
+   */
   private void getField() {
-    int nOptions = options.size();
     while (field == null) {
       System.out.println(
           "\nSelect how you would like to search for tweets:\n\n1) keywords \n2) keyphrases \n3) hashtags\n\n"
               + "Please enter either 1, 2 or 3...");
 
-      int choice = sc.nextInt();
-      if (choice >= 1 && choice <= nOptions) {
-        field = options.get(choice - 1);
+      String choice = sc.next();
+      if (choice.equals("1") || choice.equals("2") || choice.equals("3")) {
+        field = options.get(Integer.parseInt(choice) - 1);
       }
     }
     fieldSingular = field.substring(0, field.length() - 1);
