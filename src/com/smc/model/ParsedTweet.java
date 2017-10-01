@@ -8,6 +8,7 @@ import com.smc.util.Parser;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.mongodb.morphia.annotations.Indexed;
 
 /**
  * Module used to represent tweets in a way that enables analysis to be performed.
@@ -52,6 +53,11 @@ public class ParsedTweet {
   @Getter
   @Setter
   private boolean retweet;
+
+  @Getter
+  @Setter
+  @Indexed(unique = true)
+  private long tweetId;
 
   public ParsedTweet() {
     this.keywords = new HashSet<>();

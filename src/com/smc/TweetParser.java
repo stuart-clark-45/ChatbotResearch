@@ -102,6 +102,9 @@ public class TweetParser {
     // The parsed tweet
     ParsedTweet parsed = new ParsedTweet();
 
+    // Set the tweet id
+    parsed.setTweetId(tweet.getTweetId());
+
     // Set unparsed
     String text = tweet.getText();
     parsed.setUnparsed(text);
