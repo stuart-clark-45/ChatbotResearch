@@ -9,9 +9,13 @@ import java.io.IOException;
  */
 public class Pipeline {
 
-  public static void main(String[] args) throws IOException {
+  private void run() throws IOException {
     new TweetParser().run();
     new Analysis().run();
+  }
+
+  public static void main(String[] args) throws IOException {
+    new Pipeline().run();
   }
 
 }
