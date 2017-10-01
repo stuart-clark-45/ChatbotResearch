@@ -6,13 +6,15 @@ import static org.mongodb.morphia.query.Sort.descending;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import com.mongodb.AggregationOptions;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.aggregation.Accumulator;
+import org.mongodb.morphia.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.candmcomputing.util.ConfigHelper;
 import com.candmcomputing.util.MongoHelper;
+import com.mongodb.AggregationOptions;
 import com.mongodb.DBCollection;
 import com.smc.model.HashTag;
 import com.smc.model.KeyPhrase;
@@ -30,6 +32,8 @@ public class Analysis {
   private static final Logger LOGGER = LoggerFactory.getLogger(Analysis.class);
 
   private static final String COUNT = "count";
+
+  private static final boolean IGNORE_RT = ConfigHelper.getBoolean("ingoreRetweets");
 
   private final Accumulator counter;
   private final AggregationOptions options;
@@ -72,12 +76,17 @@ public class Analysis {
     DBCollection collection = ds.getCollection(clazz);
     collection.drop();
 
+    // Decided whether retweets should be included in results
+    Query<ParsedTweet> match = ds.createQuery(ParsedTweet.class);
+    if (IGNORE_RT) {
+      match.field("retweet").equal(false);
+    }
 
     // Perform aggregation and store result in database. Indexes are dropped before inserting into
     // collection takes place to reduce aggregation time.
     collection.dropIndexes();
-    ds.createAggregation(ParsedTweet.class).unwind(field).group(field, grouping(COUNT, counter))
-        .sort(descending(COUNT)).out(clazz, options);
+    ds.createAggregation(ParsedTweet.class).match(match).unwind(field)
+        .group(field, grouping(COUNT, counter)).sort(descending(COUNT)).out(clazz, options);
     ds.ensureIndexes(clazz);
   }
 
