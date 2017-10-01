@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import com.candmcomputing.util.ConfigHelper;
 import com.candmcomputing.util.MongoHelper;
+import com.mongodb.DBCollection;
 import com.smc.model.ParsedTweet;
 import com.smc.model.Phrase;
 import com.smc.model.Token;
@@ -52,12 +53,14 @@ public class TweetParser {
   }
 
   public void run() {
-    // Drop existing parsed tweets
-    ds.getCollection(ParsedTweet.class).drop();
-
     // Log how many tweets there are
     int count = (int) ds.getCount(Tweet.class);
     LOGGER.info("Parsing " + count + " tweets...");
+
+    // Drop existing parsed tweets and indexes. Dropping indexes reduces insert time.
+    DBCollection collection = ds.getCollection(ParsedTweet.class);
+    collection.drop();
+    collection.dropIndexes();
 
     // Iterate over all of the imported tweets and parse them in parallel.
     List<Future<?>> futures = new ArrayList<>(count);
@@ -72,6 +75,8 @@ public class TweetParser {
       }
     });
 
+    // Reapply indexes
+    ds.ensureIndexes(ParsedTweet.class);
   }
 
   /**
