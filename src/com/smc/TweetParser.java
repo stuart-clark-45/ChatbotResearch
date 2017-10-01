@@ -5,8 +5,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import org.mongodb.morphia.Datastore;
 import org.slf4j.Logger;
@@ -35,6 +38,7 @@ public class TweetParser {
   private static final String CHATBOT_REGEX = "#?(chat)?bots?";
 
   private final Datastore ds;
+  private final ExecutorService es;
 
   public TweetParser() {
     this.ds = MongoHelper.getDataStore();
@@ -42,17 +46,32 @@ public class TweetParser {
     LOGGER.info("Initialising StanfordCoreNLP...");
     Properties props = new Properties();
     props.put("annotators", "tokenize, ssplit, pos, lemma, ner, parse");
+
+    int nThreads = Runtime.getRuntime().availableProcessors() * 2;
+    this.es = Executors.newFixedThreadPool(nThreads);
   }
 
   public void run() {
     // Drop existing parsed tweets
     ds.getCollection(ParsedTweet.class).drop();
 
-    // Iterate over all of the imported tweets
-    LOGGER.info("Parsing " + ds.getCount(Tweet.class) + " tweets...");
+    // Log how many tweets there are
+    int count = (int) ds.getCount(Tweet.class);
+    LOGGER.info("Parsing " + count + " tweets...");
 
-    // Parse the tweets in parallel
-    StreamSupport.stream(ds.createQuery(Tweet.class).spliterator(), true).forEach(this::parseTweet);
+    // Iterate over all of the imported tweets and parse them in parallel.
+    List<Future<?>> futures = new ArrayList<>(count);
+    for (Tweet tweet : ds.createQuery(Tweet.class)) {
+      futures.add(es.submit(() -> parseTweet(tweet)));
+    }
+    futures.forEach(voidFuture -> {
+      try {
+        voidFuture.get();
+      } catch (InterruptedException | ExecutionException e) {
+        LOGGER.error("Failed to get future", e);
+      }
+    });
+
   }
 
   /**
@@ -87,8 +106,8 @@ public class TweetParser {
     // Generate the key phrases
     // TODO there are better ways of doing this than getting the power set then filtering it
     Set<String> keyphrases =
-        powerSet(keywords).stream().filter(set -> set.size() > 1 && set.size() < 5).map(Phrase::new).map(Phrase::getText)
-            .collect(Collectors.toSet());
+        powerSet(keywords).stream().filter(set -> set.size() > 1 && set.size() < 5).map(Phrase::new)
+            .map(Phrase::getText).collect(Collectors.toSet());
     parsed.setKeyphrases(keyphrases);
 
     // Save the parsed tweet
