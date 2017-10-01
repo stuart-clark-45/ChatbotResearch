@@ -33,6 +33,8 @@ public class TweetParser {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TweetParser.class);
 
+  private static final String RETWEET = "RT";
+
   private static final Set<String> BAD_HASHTAGS =
       new HashSet<>(ConfigHelper.getList(String.class, "hashtags.exclude"));
 
@@ -105,6 +107,9 @@ public class TweetParser {
     // Parse the text to obtain tokens with POS and NER tags
     List<Token> tokens = new Parser(text).getTokens();
     parsed.setTokens(tokens);
+
+    // Set retweet
+    parsed.setRetweet(tokens.get(0).getText().equals(RETWEET));
 
     // Select key words
     Set<String> keywords = tokens.stream().filter(TweetParser::isKeyWord).map(Token::getText)
