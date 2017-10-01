@@ -7,6 +7,7 @@ import java.util.Scanner;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 
+import com.candmcomputing.util.ConfigHelper;
 import com.candmcomputing.util.MongoHelper;
 import com.smc.model.ParsedTweet;
 
@@ -16,6 +17,8 @@ import com.smc.model.ParsedTweet;
  * @author Stuart Clark
  */
 public class TweetSearch {
+
+  private static final boolean IGNORE_RT = ConfigHelper.getBoolean("ignoreRetweets");
 
   private final Datastore ds;
   private final Scanner sc;
@@ -44,9 +47,12 @@ public class TweetSearch {
 
       // Search for tweets and print them out
       System.out.println("\nTweets: ");
-      Query<ParsedTweet> tweets = ds.createQuery(ParsedTweet.class).field(field).equal(value);
+      Query<ParsedTweet> query = ds.createQuery(ParsedTweet.class).field(field).equal(value);
+      if (IGNORE_RT) {
+        query.field("retweet").equal(false);
+      }
       int counter = 0;
-      for (ParsedTweet tweet : tweets) {
+      for (ParsedTweet tweet : query) {
         System.out.println(++counter + ") " + tweet.getUnparsed());
       }
 
