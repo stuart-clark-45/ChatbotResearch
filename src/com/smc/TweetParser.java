@@ -11,6 +11,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
+import com.candmcomputing.util.IterationLogger;
 import org.mongodb.morphia.Datastore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +41,8 @@ public class TweetParser {
 
   private static final String CHATBOT_REGEX = "#?(chat)?bots?";
 
+  private static final int LOG_INTERVAL = 100;
+
   private final Datastore ds;
   private final ExecutorService es;
 
@@ -56,8 +59,8 @@ public class TweetParser {
 
   public void run() {
     // Log how many tweets there are
-    int count = (int) ds.getCount(Tweet.class);
-    LOGGER.info("Parsing " + count + " tweets...");
+    int numTweet = (int) ds.getCount(Tweet.class);
+    LOGGER.info("Parsing " + numTweet + " tweets...");
 
     // Drop existing parsed tweets and indexes. Dropping indexes reduces insert time.
     DBCollection collection = ds.getCollection(ParsedTweet.class);
@@ -65,17 +68,25 @@ public class TweetParser {
     collection.dropIndexes();
 
     // Iterate over all of the imported tweets and parse them in parallel.
-    List<Future<?>> futures = new ArrayList<>(count);
+    IterationLogger itLogger = IterationLogger.builder().logger(LOGGER).logInterval(LOG_INTERVAL)
+        .maxIterations(numTweet).task("Futures created").build();
+    List<Future<?>> futures = new ArrayList<>(numTweet);
     for (Tweet tweet : ds.createQuery(Tweet.class)) {
       futures.add(es.submit(() -> parseTweet(tweet)));
+      itLogger.iteration();
     }
-    futures.forEach(voidFuture -> {
+
+    // Get all of the futures
+    itLogger = IterationLogger.builder().logger(LOGGER).logInterval(LOG_INTERVAL)
+        .maxIterations(numTweet).task("tweets parsed").build();
+    for (Future<?> future : futures) {
       try {
-        voidFuture.get();
+        future.get();
+        itLogger.iteration();
       } catch (InterruptedException | ExecutionException e) {
         LOGGER.error("Failed to get future", e);
       }
-    });
+    }
 
     // Reapply indexes
     ds.ensureIndexes(ParsedTweet.class);
