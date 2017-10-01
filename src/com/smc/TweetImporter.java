@@ -21,6 +21,11 @@ import twitter4j.TwitterStreamFactory;
 import twitter4j.User;
 import twitter4j.conf.ConfigurationBuilder;
 
+/**
+ * Used to import tweets relating to chatbots into the database using the twitter stream api.
+ *
+ * @author Stuart Clark
+ */
 public class TweetImporter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TweetImporter.class);
@@ -49,6 +54,9 @@ public class TweetImporter {
 
   }
 
+  /**
+   * Used to handle events related to the the twitter stream api.
+   */
   private class Listener extends StatusAdapter {
     @Override
     public void onStatus(Status status) {
