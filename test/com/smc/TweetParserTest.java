@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.candmcomputing.util.Testing;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,7 +19,6 @@ import com.candmcomputing.util.MongoHelper;
 import com.smc.model.ParsedTweet;
 import com.smc.model.Phrase;
 import com.smc.model.Tweet;
-import com.smc.util.Testing;
 
 @RunWith(Testing.class)
 public class TweetParserTest {
