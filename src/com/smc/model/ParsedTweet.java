@@ -49,6 +49,10 @@ public class ParsedTweet {
   @Setter
   private List<Token> tokens;
 
+  @Getter
+  @Setter
+  private boolean retweet;
+
   public ParsedTweet() {
     this.keywords = new HashSet<>();
     this.hashtags = new HashSet<>();
