@@ -20,6 +20,7 @@ public abstract class StringCountResult {
 
   @Id
   @Getter
+  @Setter
   private String string;
 
   @Getter
