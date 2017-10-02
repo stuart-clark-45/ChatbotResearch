@@ -53,7 +53,8 @@ public class TweetSearch {
       }
       int counter = 0;
       for (ParsedTweet tweet : query) {
-        System.out.println(++counter + ") " + tweet.getUnparsed());
+        System.out.println(
+            "(#" + ++counter + " tweetId=" + tweet.getTweetId() + ") " + tweet.getUnparsed());
       }
 
     }
