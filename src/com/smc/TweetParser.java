@@ -24,6 +24,7 @@ import com.smc.model.Token;
 import com.smc.model.Tweet;
 import com.smc.util.BandWords;
 import com.smc.util.CbrException;
+import com.smc.util.Combinations;
 import com.smc.util.Parser;
 
 /**
@@ -88,6 +89,7 @@ public class TweetParser {
     }
 
     // Reapply indexes
+    LOGGER.info("Ensuring indexes...");
     ds.ensureIndexes(ParsedTweet.class);
 
     LOGGER.info("Finished parsing tweets.");
@@ -134,10 +136,8 @@ public class TweetParser {
     kwAndHt.addAll(hashtags);
 
     // Generate the key phrases
-    // TODO there are better ways of doing this than getting the power set then filtering it
-    Set<String> keyphrases =
-        powerSet(kwAndHt).stream().filter(set -> set.size() > 1 && set.size() < 5)
-            .map(this::buildPhrase).collect(Collectors.toSet());
+    Set<String> keyphrases = new Combinations<>(kwAndHt, 2, 4).find().stream()
+        .map(this::buildPhrase).collect(Collectors.toSet());
     parsed.setKeyphrases(keyphrases);
 
     // Save the parsed tweet
@@ -174,34 +174,6 @@ public class TweetParser {
 
     // The word cannot be a band word
     return !bandwords.isBanned(lower);
-  }
-
-  /**
-   * @param keywords
-   * @return the power set of {@code keywords}.
-   */
-  private static Set<Set<String>> powerSet(Set<String> keywords) {
-    Set<Set<String>> sets = new HashSet<>();
-
-    // Return a set containing a single empty set if originalSet is empty
-    if (keywords.isEmpty()) {
-      sets.add(new HashSet<>());
-      return sets;
-    }
-
-    // Recursively construct the power set
-    List<String> list = new ArrayList<>(keywords);
-    String head = list.get(0);
-    Set<String> rest = new HashSet<>(list.subList(1, list.size()));
-    for (Set<String> set : powerSet(rest)) {
-      Set<String> newSet = new HashSet<>();
-      newSet.add(head);
-      newSet.addAll(set);
-      sets.add(newSet);
-      sets.add(set);
-    }
-
-    return sets;
   }
 
   public static void main(String[] args) throws CbrException {
