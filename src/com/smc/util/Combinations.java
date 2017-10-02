@@ -59,7 +59,7 @@ public class Combinations<T> {
    * @param node
    * @return the set of value found along the path from the {@code node} to the root.
    */
-  public Set<T> valuesSet(Node<T> node) {
+  private Set<T> valuesSet(Node<T> node) {
     Set<T> values = new HashSet<>();
 
     while (node.getParent() != null) {
