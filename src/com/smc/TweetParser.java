@@ -129,10 +129,11 @@ public class TweetParser {
         .map(String::toUpperCase).collect(Collectors.toSet());
     parsed.setKeywords(keywords);
 
-    // Generate the key phrases
     // Combine keywords and hashtags
     HashSet<String> kwAndHt = new HashSet<>(keywords);
     kwAndHt.addAll(hashtags);
+    
+    // Generate the key phrases
     // TODO there are better ways of doing this than getting the power set then filtering it
     Set<String> keyphrases =
         powerSet(kwAndHt).stream().filter(set -> set.size() > 1 && set.size() < 5)
