@@ -1,5 +1,7 @@
 package com.smc;
 
+import static com.candmcomputing.util.ConfigHelper.getString;
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -38,10 +40,10 @@ public class TweetImporter {
 
   public void run() throws TwitterException, InterruptedException {
     ConfigurationBuilder cb = new ConfigurationBuilder();
-    cb.setOAuthConsumerKey("***REMOVED***");
-    cb.setOAuthConsumerSecret("***REMOVED***");
-    cb.setOAuthAccessToken("***REMOVED***");
-    cb.setOAuthAccessTokenSecret("***REMOVED***");
+    cb.setOAuthConsumerKey(getString("twitter.consumerKey"));
+    cb.setOAuthConsumerSecret(getString("twitter.consumerSecret"));
+    cb.setOAuthAccessToken(getString("twitter.accessToken"));
+    cb.setOAuthAccessTokenSecret(getString("twitter.accessTokenSecret"));
 
     TwitterStream twitterStream = new TwitterStreamFactory(cb.build()).getInstance();
     twitterStream.addListener(new Listener());
