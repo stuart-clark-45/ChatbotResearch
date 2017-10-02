@@ -144,6 +144,12 @@ public class TweetParser {
     ds.save(parsed);
   }
 
+  /**
+   * @param words
+   * @return an String with each of the words in {@code words} in alphabetical order separated by a
+   *         space. Having the phrases in alphabetical make aggregation easier during
+   *         {@link Analysis}.
+   */
   private String buildPhrase(Set<String> words) {
     List<String> wordsList = new ArrayList<>(words);
     Collections.sort(wordsList);
