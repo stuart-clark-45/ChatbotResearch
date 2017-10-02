@@ -1,13 +1,13 @@
 package com.smc.model;
 
-import lombok.EqualsAndHashCode;
-import lombok.Setter;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Indexed;
 
 import com.smc.Analysis;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Model used to represent the result of aggregations that count the number of occurrences of

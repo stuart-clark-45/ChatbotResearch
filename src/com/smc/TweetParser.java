@@ -43,7 +43,7 @@ public class TweetParser {
   private final ExecutorService es;
   private final BandWords bandwords;
 
-  public TweetParser() {
+  public TweetParser() throws CbrException {
     this.ds = MongoHelper.getDataStore();
 
     LOGGER.info("Initialising StanfordCoreNLP...");
@@ -53,7 +53,7 @@ public class TweetParser {
     int nThreads = Runtime.getRuntime().availableProcessors() * 2;
     this.es = Executors.newFixedThreadPool(nThreads);
 
-    this.bandwords = new BandWords();
+    this.bandwords = BandWords.getInstance();
   }
 
   public void run() {
@@ -113,7 +113,7 @@ public class TweetParser {
     text = text.replaceAll("#", "");
 
     // Filter out the bad hashtags
-    Set<String> hashtags = tweet.getHashtags().stream().filter(ht -> !isBanned(ht))
+    Set<String> hashtags = tweet.getHashtags().stream().filter(ht -> !bandwords.isBanned(ht))
         .map(String::toUpperCase).collect(Collectors.toSet());
     parsed.setHashtags(hashtags);
 
@@ -132,7 +132,7 @@ public class TweetParser {
     // Combine keywords and hashtags
     HashSet<String> kwAndHt = new HashSet<>(keywords);
     kwAndHt.addAll(hashtags);
-    
+
     // Generate the key phrases
     // TODO there are better ways of doing this than getting the power set then filtering it
     Set<String> keyphrases =
@@ -148,21 +148,6 @@ public class TweetParser {
     List<String> wordsList = new ArrayList<>(words);
     Collections.sort(wordsList);
     return String.join(" ", wordsList);
-  }
-
-  /**
-   * Wraps around {@link BandWords#isBanned(String)} and handles exception.
-   *
-   * @param word
-   * @return
-   */
-  private boolean isBanned(String word) {
-    try {
-      return bandwords.isBanned(word);
-    } catch (CbrException e) {
-      LOGGER.error("Failed check if \"" + word + "\" was banned it will be accepted", e);
-      return false;
-    }
   }
 
   private boolean isKeyWord(Token t) {
@@ -182,7 +167,7 @@ public class TweetParser {
       return false;
 
     // The word cannot be a band word
-    return !isBanned(lower);
+    return !bandwords.isBanned(lower);
   }
 
   /**
@@ -213,7 +198,7 @@ public class TweetParser {
     return sets;
   }
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws CbrException {
     new TweetParser().run();
   }
 

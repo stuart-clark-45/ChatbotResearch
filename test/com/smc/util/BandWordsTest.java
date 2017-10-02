@@ -12,8 +12,7 @@ public class BandWordsTest {
 
   @Test
   public void test() throws Exception {
-    BandWords.reset();
-    BandWords bandWords = new BandWords("testres/band-words.txt");
+    BandWords bandWords = new BandWords("./testres/band-words.txt");
     assertTrue(bandWords.isBanned("hello "));
     assertTrue(bandWords.isBanned(" WoRLD"));
     assertFalse(bandWords.isBanned("testing"));

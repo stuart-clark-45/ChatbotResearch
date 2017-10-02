@@ -8,26 +8,42 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 /**
- * Used to load words from bad words file into a set and provided access to it.
+ * Used to load words from bad words file into a set and provided access to a singleton instance.
  *
  * @author Stuart Clark
  */
 public class BandWords {
 
-  private static Set<String> words;
+  private static BandWords instance;
 
-  private final String file;
+  private Set<String> words;
 
-
-  public BandWords() {
+  private BandWords() throws CbrException {
     this("conf/band-words.txt");
   }
 
   /**
+   * This method is intended for use when unit testing.
+   *
    * @param file the file to load the band words from.
    */
-  public BandWords(String file) {
-    this.file = file;
+  /* package */ BandWords(String file) throws CbrException {
+    this.words = new HashSet<>();
+
+    // Read the bad words file
+    try (Stream<String> stream = Files.lines(Paths.get(file))) {
+
+      // Add the words from the file into the set
+      stream.forEach((word) -> {
+        word = prepareWord(word);
+        if (!word.startsWith("#") && !word.isEmpty()) {
+          words.add(word);
+        }
+      });
+
+    } catch (IOException e) {
+      throw new CbrException("Failed to get band words", e);
+    }
   }
 
   /**
@@ -35,47 +51,19 @@ public class BandWords {
    * @return true if {@code word} is banned, false otherwise.
    * @throws CbrException
    */
-  public boolean isBanned(String word) throws CbrException {
-    return getWords().contains(prepareWord(word));
-  }
-
-  /**
-   * @return a set of words which are band from being hashtags and keywords.
-   * @throws CbrException
-   */
-  private Set<String> getWords() throws CbrException {
-    if (words == null) {
-
-      words = new HashSet<>();
-
-      // Read the bad words file
-      try (Stream<String> stream = Files.lines(Paths.get(file))) {
-
-        // Add the words from the file into the set
-        stream.forEach((word) -> {
-          word = prepareWord(word);
-          if (!word.startsWith("#") && !word.isEmpty()) {
-            words.add(word);
-          }
-        });
-
-      } catch (IOException e) {
-        throw new CbrException("Failed to get band words", e);
-      }
-    }
-
-    return words;
+  public boolean isBanned(String word) {
+    return words.contains(prepareWord(word));
   }
 
   private String prepareWord(String word) {
     return word.trim().toUpperCase();
   }
 
-  /**
-   * Sets words to null, used for testing.
-   */
-  public static void reset() {
-    words = null;
+  public static BandWords getInstance() throws CbrException {
+    if (instance == null) {
+      instance = new BandWords();
+    }
+    return instance;
   }
 
 }

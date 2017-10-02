@@ -4,11 +4,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.mongodb.morphia.annotations.Indexed;
+
 import com.smc.util.Parser;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.mongodb.morphia.annotations.Indexed;
 
 /**
  * Module used to represent tweets in a way that enables analysis to be performed.
