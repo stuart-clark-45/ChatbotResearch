@@ -2,13 +2,11 @@ package com.smc;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.candmcomputing.util.Testing;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,8 +14,8 @@ import org.junit.runner.RunWith;
 import org.mongodb.morphia.Datastore;
 
 import com.candmcomputing.util.MongoHelper;
+import com.candmcomputing.util.Testing;
 import com.smc.model.ParsedTweet;
-import com.smc.model.Phrase;
 import com.smc.model.Tweet;
 
 @RunWith(Testing.class)
@@ -56,15 +54,17 @@ public class TweetParserTest {
     // Check only one
     assertEquals(1, parsedTweets.size());
 
+    // Check it was correctly parsed
     ParsedTweet parsed = parsedTweets.get(0);
-    assertEquals(tweet.getHashtags(), parsed.getHashtags());
+    Set<String> htUpper = hashtags.stream().map(String::toUpperCase).collect(Collectors.toSet());
+    assertEquals(htUpper, parsed.getHashtags());
     assertEquals(tweet.getText(), parsed.getUnparsed());
-    assertEquals(Stream.of("testing", "TweetParser", "am").collect(Collectors.toSet()),
+    assertEquals(Stream.of("TESTING", "TWEETPARSER", "AM").collect(Collectors.toSet()),
         parsed.getKeywords());
-
-    Set<Phrase> expected = Stream.of(new Phrase(Arrays.asList("testing", "TweetParser", "am")),
-        new Phrase(Arrays.asList("testing", "TweetParser")),
-        new Phrase(Arrays.asList("testing", "am")), new Phrase(Arrays.asList("TweetParser", "am")))
+    Set<String> expected = Stream
+        .of("AM TESTING TWEETPARSER", "TESTING TWEETPARSER", "AM TESTING", "AM TWEETPARSER",
+            "123 AM TESTING TWEETPARSER", "123 TESTING TWEETPARSER", "123 AM TESTING",
+            "123 AM TWEETPARSER", "123 TWEETPARSER", "123 TESTING", "123 AM")
         .collect(Collectors.toSet());
     assertEquals(expected, parsed.getKeyphrases());
   }
