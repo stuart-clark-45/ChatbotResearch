@@ -1,6 +1,7 @@
 package com.smc;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -19,7 +20,6 @@ import com.candmcomputing.util.IterationLogger;
 import com.candmcomputing.util.MongoHelper;
 import com.mongodb.DBCollection;
 import com.smc.model.ParsedTweet;
-import com.smc.model.Phrase;
 import com.smc.model.Token;
 import com.smc.model.Tweet;
 import com.smc.util.BandWords;
@@ -135,12 +135,18 @@ public class TweetParser {
     kwAndHt.addAll(hashtags);
     // TODO there are better ways of doing this than getting the power set then filtering it
     Set<String> keyphrases =
-        powerSet(kwAndHt).stream().filter(set -> set.size() > 1 && set.size() < 5).map(Phrase::new)
-            .map(Phrase::getText).collect(Collectors.toSet());
+        powerSet(kwAndHt).stream().filter(set -> set.size() > 1 && set.size() < 5)
+            .map(this::buildPhrase).collect(Collectors.toSet());
     parsed.setKeyphrases(keyphrases);
 
     // Save the parsed tweet
     ds.save(parsed);
+  }
+
+  private String buildPhrase(Set<String> words) {
+    List<String> wordsList = new ArrayList<>(words);
+    Collections.sort(wordsList);
+    return String.join(" ", wordsList);
   }
 
   /**
