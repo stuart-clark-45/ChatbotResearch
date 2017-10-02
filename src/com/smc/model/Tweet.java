@@ -7,6 +7,7 @@ import org.bson.types.ObjectId;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Indexed;
 
 /**
@@ -14,6 +15,7 @@ import org.mongodb.morphia.annotations.Indexed;
  */
 public class Tweet {
 
+  @Id
   @Getter
   private ObjectId id;
 
