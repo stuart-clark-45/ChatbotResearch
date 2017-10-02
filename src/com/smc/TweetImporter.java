@@ -50,16 +50,13 @@ public class TweetImporter {
 
     FilterQuery query = new FilterQuery().language("en").track("chatbot", "chatbots");
     twitterStream.filter(query);
-
-
-    Thread.sleep(400000);
-
   }
 
   /**
    * Used to handle events related to the the twitter stream api.
    */
   private class Listener extends StatusAdapter {
+
     @Override
     public void onStatus(Status status) {
       // Get the user
@@ -93,13 +90,13 @@ public class TweetImporter {
     @Override
     public void onStallWarning(StallWarning warning) {
       LOGGER.warn(warning.toString());
-      System.exit(0);
     }
 
     @Override
     public void onException(Exception e) {
       LOGGER.error("Error whilst streaming tweets", e);
     }
+
   }
 
   public static void main(String[] args) throws TwitterException, InterruptedException {
