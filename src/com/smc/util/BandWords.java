@@ -71,4 +71,11 @@ public class BandWords {
     return word.trim().toUpperCase();
   }
 
+  /**
+   * Sets words to null, used for testing.
+   */
+  public static void reset() {
+    words = null;
+  }
+
 }
