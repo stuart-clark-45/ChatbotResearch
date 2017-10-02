@@ -26,8 +26,12 @@ public class GenWordFile {
   private final Map<String, Long> words;
 
   public GenWordFile() throws FileNotFoundException {
+    this("words.txt");
+  }
+
+  public GenWordFile(String outputFile) throws FileNotFoundException {
     this.ds = MongoHelper.getDataStore();
-    this.writer = new PrintWriter("words.txt");
+    this.writer = new PrintWriter(outputFile);
     this.words = new HashMap<>();
   }
 
