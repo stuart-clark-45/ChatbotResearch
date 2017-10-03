@@ -1,6 +1,5 @@
 package com.smc.model;
 
-import lombok.ToString;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Indexed;
 
