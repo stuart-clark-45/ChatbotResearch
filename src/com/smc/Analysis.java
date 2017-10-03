@@ -3,17 +3,29 @@ package com.smc;
 import static org.mongodb.morphia.aggregation.Group.grouping;
 import static org.mongodb.morphia.query.Sort.descending;
 
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.aggregation.Accumulator;
+import org.mongodb.morphia.query.FindOptions;
 import org.mongodb.morphia.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.candmcomputing.util.ConfigHelper;
 import com.candmcomputing.util.MongoHelper;
+import com.kennycason.kumo.CollisionMode;
+import com.kennycason.kumo.WordCloud;
+import com.kennycason.kumo.WordFrequency;
+import com.kennycason.kumo.font.KumoFont;
+import com.kennycason.kumo.font.scale.LinearFontScalar;
+import com.kennycason.kumo.palette.ColorPalette;
 import com.mongodb.AggregationOptions;
 import com.mongodb.DBCollection;
 import com.smc.model.HashTag;
@@ -52,14 +64,17 @@ public class Analysis {
     // Count the number of times that each hashtags appears and write the result to the database
     LOGGER.info("Analysing hashtags...");
     countDistinctElements("hashtags", HashTag.class);
+    wordCloud(HashTag.class, "hashtags.png", 200);
 
     // Count the number of times that each keyword appears and write the results to the database
     LOGGER.info("Analysing keywords...");
     countDistinctElements("keywords", KeyWord.class);
+    wordCloud(KeyWord.class, "keywords.png", 200);
 
     // Count the number of times that each phrase appears and write the results to the database
     LOGGER.info("Analysing keyphrases...");
     countDistinctElements("keyphrases", KeyPhrase.class);
+    wordCloud(KeyPhrase.class, "keyphrases.png", 100);
 
     LOGGER.info("Finished running Analysis...");
   }
@@ -88,6 +103,26 @@ public class Analysis {
     ds.createAggregation(ParsedTweet.class).match(match).unwind(field)
         .group(field, grouping(COUNT, counter)).sort(descending(COUNT)).out(clazz, options);
     ds.ensureIndexes(clazz);
+  }
+
+  private <T extends StringCountResult> void wordCloud(Class<T> clazz, String file,
+      int wordsInCloud) {
+    // Load the word frequencies from the database
+    FindOptions limit = new FindOptions().limit(wordsInCloud);
+    List<WordFrequency> frequencies = ds.createQuery(clazz).order(descending(COUNT)).asList(limit)
+        .stream()
+        .map(scr -> new WordFrequency(scr.getString().replaceAll("\\s", "-"), (int) scr.getCount()))
+        .collect(Collectors.toList());
+
+    // Create the word cloud
+    Dimension dimension = new Dimension(800, 500);
+    WordCloud wordCloud = new WordCloud(dimension, CollisionMode.PIXEL_PERFECT);
+    wordCloud.setPadding(2);
+    wordCloud.setColorPalette(new ColorPalette(new Color(0x4055F1), new Color(0x408DF1),
+        new Color(0x40AAF1), new Color(0x40C5F1), new Color(0x40D3F1), new Color(0xFFFFFF)));
+    wordCloud.setFontScalar(new LinearFontScalar(10, 40));
+    wordCloud.build(frequencies);
+    wordCloud.writeToFile(file);
   }
 
   public static void main(String[] args) {
