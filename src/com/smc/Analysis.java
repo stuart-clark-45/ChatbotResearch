@@ -1,11 +1,11 @@
 package com.smc;
 
+import static com.candmcomputing.model.Mode.Value.TEST;
 import static org.mongodb.morphia.aggregation.Group.grouping;
 import static org.mongodb.morphia.query.Sort.descending;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -18,12 +18,12 @@ import org.mongodb.morphia.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.candmcomputing.model.Mode;
 import com.candmcomputing.util.ConfigHelper;
 import com.candmcomputing.util.MongoHelper;
 import com.kennycason.kumo.CollisionMode;
 import com.kennycason.kumo.WordCloud;
 import com.kennycason.kumo.WordFrequency;
-import com.kennycason.kumo.font.KumoFont;
 import com.kennycason.kumo.font.scale.LinearFontScalar;
 import com.kennycason.kumo.palette.ColorPalette;
 import com.mongodb.AggregationOptions;
@@ -46,6 +46,8 @@ public class Analysis {
   private static final String COUNT = "count";
 
   private static final boolean IGNORE_RT = ConfigHelper.getBoolean("ignoreRetweets");
+
+  private static final Mode.Value MODE = ConfigHelper.getMode();
 
   private final Accumulator counter;
   private final AggregationOptions options;
@@ -122,7 +124,11 @@ public class Analysis {
         new Color(0x40AAF1), new Color(0x40C5F1), new Color(0x40D3F1), new Color(0xFFFFFF)));
     wordCloud.setFontScalar(new LinearFontScalar(10, 40));
     wordCloud.build(frequencies);
-    wordCloud.writeToFile(file);
+
+    // Write it to the file if not in test mode
+    if (MODE != TEST) {
+      wordCloud.writeToFile(file);
+    }
   }
 
   public static void main(String[] args) {
