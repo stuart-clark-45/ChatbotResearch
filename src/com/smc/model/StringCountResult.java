@@ -1,5 +1,6 @@
 package com.smc.model;
 
+import lombok.ToString;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Indexed;
 
@@ -15,7 +16,7 @@ import lombok.Setter;
  *
  * @author Stuart Clark
  */
-@EqualsAndHashCode(exclude = "count")
+@EqualsAndHashCode()
 public abstract class StringCountResult {
 
   @Id
