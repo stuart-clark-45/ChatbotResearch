@@ -28,10 +28,6 @@ public class Token implements Serializable {
   @Setter
   private String pos;
 
-  @Getter
-  @Setter
-  private String ner;
-
   private Token() {
     // For morphia
   }

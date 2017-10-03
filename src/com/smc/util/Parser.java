@@ -27,7 +27,7 @@ public class Parser {
   static {
     LOGGER.info("Initialising StanfordCoreNLP...");
     Properties props = new Properties();
-    props.put("annotators", "tokenize, ssplit, pos, lemma, ner, parse");
+    props.put("annotators", "tokenize, ssplit, pos");
     PIPELINE = new StanfordCoreNLP(props);
   }
 
@@ -61,7 +61,6 @@ public class Parser {
     for (CoreLabel cl : labels) {
       Token token = new Token(cl.get(CoreAnnotations.TextAnnotation.class));
       token.setPos(cl.get(CoreAnnotations.PartOfSpeechAnnotation.class));
-      token.setNer(cl.get(CoreAnnotations.NamedEntityTagAnnotation.class));
       parsed.add(token);
     }
     return parsed;
