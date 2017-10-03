@@ -23,6 +23,7 @@ THINGS
 BOT
 'RE
 'S
+'VE
 |
 UR
 W
