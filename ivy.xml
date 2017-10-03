@@ -9,7 +9,7 @@
 
     <dependencies>
         <!-- compile dependencies -->
-        <dependency org="com.candmcomputing" name="smccore" rev="1.0.4" conf="compile->test"/>
+        <dependency org="com.candmcomputing" name="smccore" rev="1.0.5" conf="compile->test"/>
         <dependency org="org.twitter4j" name="twitter4j-core" rev="4.0.6"/>
         <dependency org="org.twitter4j" name="twitter4j-stream" rev="4.0.6"/>
         <dependency org="com.kennycason" name="kumo" rev="1.8"/>
