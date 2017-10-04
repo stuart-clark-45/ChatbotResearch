@@ -111,9 +111,6 @@ public class TweetParser {
     String text = tweet.getText();
     parsed.setUnparsed(text);
 
-    // Remove all hashtags
-    text = text.replaceAll("#", "");
-
     // Filter out the bad hashtags
     Set<String> hashtags = tweet.getHashtags().stream().filter(ht -> !bandwords.isBanned(ht))
         .map(String::toUpperCase).collect(Collectors.toSet());
