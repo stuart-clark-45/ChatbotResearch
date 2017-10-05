@@ -28,4 +28,9 @@ public abstract class StringCountResult {
   @Indexed
   private long count;
 
+  @Getter
+  @Setter
+  @Indexed
+  private long rank;
+
 }

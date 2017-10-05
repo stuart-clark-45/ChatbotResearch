@@ -8,7 +8,12 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import org.mongodb.morphia.Datastore;
@@ -24,6 +29,8 @@ import com.candmcomputing.util.MongoHelper;
 import com.kennycason.kumo.CollisionMode;
 import com.kennycason.kumo.WordCloud;
 import com.kennycason.kumo.WordFrequency;
+import com.kennycason.kumo.font.FontWeight;
+import com.kennycason.kumo.font.KumoFont;
 import com.kennycason.kumo.font.scale.LinearFontScalar;
 import com.kennycason.kumo.palette.ColorPalette;
 import com.mongodb.AggregationOptions;
@@ -48,6 +55,9 @@ public class Analysis {
   private static final boolean IGNORE_RT = ConfigHelper.getBoolean("ignoreRetweets");
 
   private static final Mode.Value MODE = ConfigHelper.getMode();
+
+  private static final ExecutorService ES =
+      Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
   private final Accumulator counter;
   private final AggregationOptions options;
@@ -104,7 +114,39 @@ public class Analysis {
     collection.dropIndexes();
     ds.createAggregation(ParsedTweet.class).match(match).unwind(field)
         .group(field, grouping(COUNT, counter)).sort(descending(COUNT)).out(clazz, options);
+    setRanking(clazz);
     ds.ensureIndexes(clazz);
+  }
+
+  /**
+   * Concurrently set the rank for each of the aggregation results
+   * 
+   * @param clazz the {@link Class} of the model used to store the aggregation results.
+   * @param <T>
+   */
+  private <T extends StringCountResult> void setRanking(Class<T> clazz) {
+
+    // Create the futures
+    int counter = 1;
+    List<Future<?>> futures = new LinkedList<>();
+    // This works as results are returned in rank order
+    for (T result : ds.createQuery(clazz)) {
+      final int rank = counter++;
+      futures.add(ES.submit(() -> {
+        result.setRank(rank);
+        ds.save(result);
+      }));
+    }
+
+    // Wait for all the futures
+    for (Future<?> future : futures) {
+      try {
+        future.get();
+      } catch (InterruptedException | ExecutionException e) {
+        LOGGER.error("Failed to set ranking", e);
+      }
+    }
+
   }
 
   private <T extends StringCountResult> void wordCloud(Class<T> clazz, String file,
@@ -123,6 +165,7 @@ public class Analysis {
     wordCloud.setColorPalette(new ColorPalette(new Color(0x4055F1), new Color(0x408DF1),
         new Color(0x40AAF1), new Color(0x40C5F1), new Color(0x40D3F1), new Color(0xFFFFFF)));
     wordCloud.setFontScalar(new LinearFontScalar(10, 40));
+    wordCloud.setKumoFont(new KumoFont("LICENSE PLATE", FontWeight.BOLD));
     wordCloud.build(frequencies);
 
     // Write it to the file if not in test mode

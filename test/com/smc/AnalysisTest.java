@@ -80,14 +80,17 @@ public class AnalysisTest {
     T one = clazz.newInstance();
     one.setString(prefix + ONE);
     one.setCount(1);
+    one.setRank(3);
 
     T two = clazz.newInstance();
     two.setString(prefix + TWO);
     two.setCount(2);
+    two.setRank(2);
 
     T three = clazz.newInstance();
     three.setString(prefix + THREE);
     three.setCount(3);
+    three.setRank(1);
 
     Set<T> expected = asSet(one, two, three);
 
