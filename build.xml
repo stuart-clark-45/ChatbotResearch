@@ -1,4 +1,4 @@
-<project name="smccore" default="compile" basedir="." xmlns:ivy="antlib:org.apache.ivy.ant">
+<project name="chatbotresearch" default="compile" basedir="." xmlns:ivy="antlib:org.apache.ivy.ant">
 
     <property name="dir.build" value="bin"/>
     <property name="dir.lib" value="lib"/>
