@@ -3,12 +3,14 @@ package com.smc;
 import static com.candmcomputing.util.ConfigHelper.getString;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.candmcomputing.util.ConfigHelper;
 import com.candmcomputing.util.MongoHelper;
 import com.smc.model.Tweet;
 
@@ -31,6 +33,7 @@ import twitter4j.conf.ConfigurationBuilder;
 public class TweetImporter {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TweetImporter.class);
+  private static final List<String> KEY_WORDS = ConfigHelper.getList(String.class, "keyWords");
 
   private AtomicInteger counter;
 
@@ -48,7 +51,8 @@ public class TweetImporter {
     TwitterStream twitterStream = new TwitterStreamFactory(cb.build()).getInstance();
     twitterStream.addListener(new Listener());
 
-    FilterQuery query = new FilterQuery().language("en").track("chatbot", "chatbots");
+    FilterQuery query =
+        new FilterQuery().language("en").track(KEY_WORDS.toArray(new String[KEY_WORDS.size()]));
     twitterStream.filter(query);
   }
 
