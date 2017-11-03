@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.smc.model.StatusWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,26 +64,8 @@ public class TweetImporter {
 
     @Override
     public void onStatus(Status status) {
-      // Get the user
-      User user = status.getUser();
-
-      // Get the hashtags
-      Set<String> hashtags = new HashSet<>();
-      for (HashtagEntity hashtag : status.getHashtagEntities()) {
-        hashtags.add(hashtag.getText());
-      }
-
-      // Build the tweet
-      Tweet tweet = new Tweet();
-      tweet.setText(status.getText());
-      tweet.setCreated(status.getCreatedAt());
-      tweet.setTweetId(status.getId());
-      tweet.setUserId(user.getId());
-      tweet.setUsername(user.getName());
-      tweet.setHashtags(hashtags);
-
       // Save the tweet
-      MongoHelper.getDataStore().save(tweet);
+      MongoHelper.getDataStore().save(new StatusWrapper(status));
 
       // Logging
       int count = counter.incrementAndGet();
